@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="3.0" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd">
+
+    <!-- Never generate directory indexes for static assets. Files remain directly
+         addressable, but requests such as /_res/ and /img/ return 404. -->
+    <context-param>
+        <param-name>org.eclipse.jetty.servlet.Default.dirAllowed</param-name>
+        <param-value>false</param-value>
+    </context-param>
+
+    <session-config>
+        <cookie-config>
+            <http-only>true</http-only>
+            <secure>true</secure>
+        </cookie-config>
+    </session-config>
+
+
+    <filter>
+        <filter-name>SecurityHeadersFilter</filter-name>
+        <filter-class>io.bastillion.common.filter.SecurityHeadersFilter</filter-class>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>SecurityHeadersFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <!-- lmvc framework filters/servlet/listener: registered explicitly rather than via
+         @WebFilter/@WebServlet/@WebListener scanning, since the app now runs from an
+         embedded-Jetty jar (see io.bastillion.Main) with annotation scanning off. -->
+    <filter>
+        <filter-name>MvcSecurityFilter</filter-name>
+        <filter-class>loophole.mvc.filter.SecurityFilter</filter-class>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>MvcSecurityFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <filter>
+        <filter-name>AuthFilter</filter-name>
+        <filter-class>io.bastillion.common.filter.AuthFilter</filter-class>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/manage/*</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/admin/*</url-pattern>
+    </filter-mapping>
+
+    <filter>
+        <filter-name>CSRFFilter</filter-name>
+        <filter-class>loophole.mvc.filter.CSRFFilter</filter-class>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>CSRFFilter</filter-name>
+        <url-pattern>/</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>CSRFFilter</filter-name>
+        <url-pattern>*.ktrl</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>CSRFFilter</filter-name>
+        <url-pattern>*.html</url-pattern>
+    </filter-mapping>
+
+    <listener>
+        <listener-class>loophole.mvc.config.TemplateConfig</listener-class>
+    </listener>
+
+    <servlet>
+        <servlet-name>DBInitServlet</servlet-name>
+        <servlet-class>io.bastillion.common.db.DBInitServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>DBInitServlet</servlet-name>
+        <url-pattern>/config</url-pattern>
+    </servlet-mapping>
+
+    <!-- SAML Assertion Consumer Service - mapped to a path outside *.ktrl, *.html,
+         /manage/*, and /admin/* so it isn't subject to CSRFFilter or AuthFilter (see
+         SamlAcsServlet's class javadoc for why that's required, not just convenient). -->
+    <servlet>
+        <servlet-name>SamlAcsServlet</servlet-name>
+        <servlet-class>io.bastillion.common.saml.SamlAcsServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>SamlAcsServlet</servlet-name>
+        <url-pattern>/saml/acs</url-pattern>
+    </servlet-mapping>
+
+    <!-- Serves Bastillion's own SAML SP metadata XML - see SamlMetadataServlet's class
+         javadoc for why this is also outside CSRFFilter's reach. -->
+    <servlet>
+        <servlet-name>SamlMetadataServlet</servlet-name>
+        <servlet-class>io.bastillion.common.saml.SamlMetadataServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>SamlMetadataServlet</servlet-name>
+        <url-pattern>/saml/metadata</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>DispatcherServlet</servlet-name>
+        <servlet-class>loophole.mvc.base.DispatcherServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>DispatcherServlet</servlet-name>
+        <url-pattern>*.ktrl</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>TemplateServlet</servlet-name>
+        <servlet-class>loophole.mvc.base.TemplateServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>TemplateServlet</servlet-name>
+        <url-pattern>*.html</url-pattern>
+    </servlet-mapping>
+
+    <welcome-file-list>
+        <welcome-file>index.html</welcome-file>
+        <welcome-file>index.htm</welcome-file>
+        <welcome-file>index.jsp</welcome-file>
+    </welcome-file-list>
+
+    <error-page>
+        <location>/error.html</location>
+    </error-page>
+
+</web-app>

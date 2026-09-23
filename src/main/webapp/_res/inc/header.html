@@ -1,0 +1,155 @@
+<!--/**
+ *    Copyright (C) 2013 Loophole, LLC
+ *
+ *    Licensed under The Prosperity Public License 3.0.0
+ */-->
+<head xmlns:th="http://www.thymeleaf.org" th:remove="tag">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta id="theme-color" name="theme-color" content="#080b10"/>
+    <script>
+        // Apply the saved preference before styles load to avoid a light/dark flash.
+        (function () {
+            var match = document.cookie.match(/(?:^|;\s*)bastillion_theme=(dark|light)(?:;|$)/);
+            var theme = match ? match[1] : 'dark';
+            document.documentElement.setAttribute('data-bs-theme', theme);
+            document.getElementById('theme-color').setAttribute(
+                'content', theme === 'light' ? '#f4f7f5' : '#080b10');
+        }());
+    </script>
+
+    <link rel="icon" th:href="@{/img/bastillion-logo.svg}" type="image/svg+xml"/>
+    <link rel="stylesheet" type="text/css" th:href="@{/_res/node/css/jquery-ui/all.css}"/>
+    <link rel="stylesheet" type="text/css" th:href="@{/_res/node/css/xterm.css}"/>
+    <link rel="stylesheet" type="text/css" th:href="@{/_res/node/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" type="text/css" th:href="@{/_res/node/css/bootstrap-grid.min.css}"/>
+    <link rel="stylesheet" type="text/css" th:href="@{/_res/node/css/bootstrap-reboot.min.css}"/>
+    <link rel="stylesheet" type="text/css" th:href="@{/_res/node/css/bootstrap-utilities.min.css}"/>
+    <link rel="stylesheet" type="text/css" th:href="@{/_res/css/bastillion.css}"/>
+    <!-- Core libraries -->
+    <script th:src="@{/_res/node/js/jquery.min.js}"></script>
+    <script th:src="@{/_res/node/js/popper.min.js}"></script>
+    <script th:src="@{/_res/node/js/bootstrap.min.js}"></script>
+
+    <!-- jQuery UI Core -->
+    <script th:src="@{/_res/node/js/jquery-ui/version.js}"></script>
+    <script th:src="@{/_res/node/js/jquery-ui/widget.js}"></script>
+    <script th:src="@{/_res/node/js/jquery-ui/position.js}"></script>
+    <script th:src="@{/_res/node/js/jquery-ui/data.js}"></script>
+    <script th:src="@{/_res/node/js/jquery-ui/disable-selection.js}"></script>
+    <script th:src="@{/_res/node/js/jquery-ui/focusable.js}"></script>
+    <script th:src="@{/_res/node/js/jquery-ui/form-reset-mixin.js}"></script>
+    <script th:src="@{/_res/node/js/jquery-ui/keycode.js}"></script>
+    <script th:src="@{/_res/node/js/jquery-ui/labels.js}"></script>
+    <script th:src="@{/_res/node/js/jquery-ui/plugin.js}"></script>
+    <script th:src="@{/_res/node/js/jquery-ui/scroll-parent.js}"></script>
+    <script th:src="@{/_res/node/js/jquery-ui/tabbable.js}"></script>
+    <script th:src="@{/_res/node/js/jquery-ui/unique-id.js}"></script>
+
+    <!-- jQuery UI Widgets -->
+    <script th:src="@{/_res/node/js/jquery-ui/widgets/mouse.js}"></script>
+    <script th:src="@{/_res/node/js/jquery-ui/widgets/draggable.js}"></script>
+    <script th:src="@{/_res/node/js/jquery-ui/widgets/droppable.js}"></script>
+    <script th:src="@{/_res/node/js/jquery-ui/widgets/resizable.js}"></script>
+    <script th:src="@{/_res/node/js/jquery-ui/widgets/selectable.js}"></script>
+    <script th:src="@{/_res/node/js/jquery-ui/widgets/sortable.js}"></script>
+
+    <!-- Extra libs -->
+    <script th:src="@{/_res/node/js/jquery.floatThead.min.js}"></script>
+    <script th:src="@{/_res/node/js/xterm.js}"></script>
+    <script th:src="@{/_res/node/js/addon-fit.js}"></script>
+
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        $(document).ready(function () {
+
+            $.ajaxSetup({cache: false});
+
+            // Keep parent sections active on assignment and edit screens too.
+            var navigationPath = window.location.pathname;
+            if (/^\/manage\/.*Profile(Systems|Users)/.test(navigationPath)) navigationPath = '/manage/viewProfiles.ktrl';
+            // Match the path without the rotating CSRF query parameter.
+            $('.navbar a[href]').each(function () {
+                if (this.getAttribute('href') === '#' || this.pathname !== navigationPath) return;
+                if ($(this).hasClass('navbar-brand')) return;
+                $(this).addClass('active').attr('aria-current', 'page');
+                $(this).closest('.dropdown').children('.nav-link').addClass('active');
+            });
+
+            $(function () {
+                // Several legacy templates use non-button elements for actions. Give those
+                // controls button semantics and complete keyboard support while the markup
+                // is gradually simplified.
+                var legacyButtons = $('.btn').filter('div, span');
+                legacyButtons.attr({'role': 'button', 'tabindex': '0'});
+                legacyButtons.on('keydown', function (event) {
+                    if (event.key !== 'Enter' && event.key !== ' ') return;
+                    event.preventDefault();
+                    if (!event.repeat && !$(this).is('.disabled, [aria-disabled="true"]')) {
+                        $(this).click();
+                    }
+                });
+
+                $("form input, form select").keydown(function (event) {
+                    if (event.keyCode === 13) {
+                        event.preventDefault();
+                        $(this).closest("form").submit();
+                    }
+                });
+
+                $('[data-theme-toggle]').on('change', function () {
+                    var theme = this.checked ? 'dark' : 'light';
+                    $('#ui-theme-value').val(theme);
+                    document.documentElement.setAttribute('data-bs-theme', theme);
+                    $('#theme-color').attr('content', theme === 'light' ? '#f4f7f5' : '#080b10');
+                });
+            });
+
+            var scrollWrapper = $('.scrollWrapper');
+            if (scrollWrapper.height() >= 450) {
+                scrollWrapper.addClass('scrollWrapperActive');
+                $('.scrollableTable').floatThead({
+                    scrollContainer: function ($table) {
+                        return $table.closest(".scrollWrapper");
+                    }
+                });
+            }
+
+            $(':input:enabled:visible:first').focus();
+
+            $('.modal').on('shown.bs.modal', function () {
+                $(this).find('input:enabled:visible:first').focus();
+            });
+
+            // Prevent duplicate submissions without changing every button on the page.
+            // Disabling all .btn elements caused unrelated actions to flash into
+            // Bootstrap's disabled colors while a form was navigating away.
+            $("form").submit(function (event) {
+                var form = $(this);
+                if (form.data("submitting")) {
+                    return false;
+                }
+
+                form.data("submitting", true);
+                var submitter = event.originalEvent && event.originalEvent.submitter;
+                if (submitter) {
+                    $(submitter).prop("disabled", true);
+                }
+                return true;
+            }).attr("accept-charset", "utf-8");
+
+            $(".submit_btn").button().click(function() {
+                $(this).closest('form').submit();
+            });
+        });
+
+        //break if loaded in frame
+        [# th:if="${isFrame == null || !isFrame}"]
+            if (top !== self) top.location.replace(self.location.href);
+        [/]
+        /*]]>*/
+    </script>
+
+</head>

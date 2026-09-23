@@ -1,0 +1,39 @@
+<!--/**
+ *    Copyright (C) 2013 Loophole, LLC
+ *
+ *    Licensed under The Prosperity Public License 3.0.0
+ */-->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" data-bs-theme="dark">
+
+<head th:with="isFrame=true">
+    <meta th:replace="~{_res/inc/header}">
+    <script th:src="@{/_res/js/upload.js}"></script>
+    <title>Bastillion - Upload &amp; Push</title>
+</head>
+
+<body class="iframe-body upload-form-page">
+<template th:if="${idList!= null && !idList.empty}" th:remove="tag">
+    <div th:replace="~{_res/inc/errors}"></div>
+    <form id="upload" class="upload-form" th:action="@{/admin/uploadSubmit.ktrl} + '?_csrf=' + ${session._csrf}"
+          method="post" enctype="multipart/form-data">
+        <div class="upload-field">
+            <label class="form-label" for="upload-file">File</label>
+            <input id="upload-file" name="upload" type="file" required class="form-control">
+            <span class="error" th:text="${fieldErrors.get('upload')}"></span>
+        </div>
+        <div class="upload-field">
+            <label class="form-label" for="push-directory">Destination directory</label>
+            <input id="push-directory" name="pushDir" type="text" class="form-control" required
+                   th:value="${pushDir}">
+            <span class="error" th:text="${fieldErrors.get('pushDir')}"></span>
+        </div>
+        <div class="upload-actions">
+            <div id="upload_btn" class="btn btn-secondary upload">Upload</div>
+        </div>
+    </form>
+</template>
+<p class="error" th:if="${idList == null || idList.empty}">No systems associated with upload</p>
+</body>
+
+</html>
