@@ -1,0 +1,56 @@
+<!--/**
+ *    Copyright (C) 2014 Loophole, LLC
+ *
+ *    Licensed under The Prosperity Public License 3.0.0
+ */-->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" data-bs-theme="dark">
+
+<head>
+    <meta th:replace="~{_res/inc/header}">
+    <title>Bastillion - One-Time Password Setup</title>
+</head>
+
+<body>
+<div class="navbar navbar-dark fixed-top navbar-expand" role="navigation">
+    <div class="container">
+        <div class="navbar-brand">
+            <img class="brand-logo" src="/img/bastillion-logo.svg" th:src="@{/img/bastillion-logo.svg}"
+                 alt="Bastillion">
+            <span>Bastillion</span>
+        </div>
+        <!--/.nav-collapse -->
+    </div>
+</div>
+<main class="container otp-setup">
+    <h1>Set up two-factor authentication</h1>
+    <p>Scan this code with your authenticator app, then enable two-factor authentication.</p>
+    <section class="otp-panel" aria-label="Authenticator setup">
+        <div class="otp-code">
+            <img th:src="'qrImage.ktrl?qrImage=' + ${qrImage} + '&amp;_csrf=' + ${session._csrf}"
+                 alt="Authenticator setup QR code">
+        </div>
+        <div class="otp-instructions">
+            <h2>Connect your authenticator</h2>
+            <ol>
+                <li>Open your authenticator app and add an account.</li>
+                <li>Scan the QR code or enter the setup key.</li>
+                <li>Enable two-factor authentication below.</li>
+            </ol>
+            <details class="otp-manual">
+                <summary>Enter setup key manually</summary>
+                <code id="shared-secret" th:text="${sharedSecret}"></code>
+            </details>
+            <p class="otp-note">You will need a code from this app each time you sign in.</p>
+        </div>
+        <form class="otp-actions" th:action="@{/admin/otpSubmit.ktrl}" method="post">
+            <input type="hidden" name="_csrf" th:value="${session._csrf}">
+            <input type="hidden" name="sharedSecret" th:value="${sharedSecret}">
+            <a th:if="${!@io.bastillion.manage.control.OTPKtrl@requireOTP}"
+               th:href="'menu.html?_csrf=' + ${session._csrf}" class="btn btn-outline-secondary">Skip for now</a>
+            <button type="submit" class="btn btn-secondary">Enable two-factor authentication</button>
+        </form>
+    </section>
+</main>
+</body>
+</html>
